@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ASPMajda.Server.Content;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ASPMajda.Server.Models
+namespace ASPMajda.Server.Messages
 {
     class ContentResponseMessage: ResponseMessage
     {

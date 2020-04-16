@@ -1,4 +1,4 @@
-﻿using ASPMajda.Server.Models;
+﻿using ASPMajda.Server.Messages;
 using System;
 using System.Collections.Generic;
 using System.Text;

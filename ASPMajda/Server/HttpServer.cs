@@ -1,6 +1,8 @@
 ﻿using ASPMajda.Server.Connection;
 using ASPMajda.Server.Controller;
-using ASPMajda.Server.Models;
+using ASPMajda.Server.Logger;
+using ASPMajda.Server.Messages;
+using ASPMajda.Server.Content;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,11 +17,16 @@ namespace ASPMajda.Server
     class HttpServer
     {
         public Pool Pool { get; private set; }
-        public IList<IControllerHandler> ControllerHandlers { get; private set; }
+
         public IPAddress Address { get; private set; }
         public int Port { get; private set; }
 
         private TcpListener listener;
+
+
+        public ServiceManager ServiceManager { get; private set; }
+
+
         public HttpServer(IPAddress address, int port)
         {
             this.Address = address;
@@ -28,30 +35,11 @@ namespace ASPMajda.Server
             this.listener = new TcpListener(address, port);
 
             this.Pool = new Pool();
-            this.ControllerHandlers = new List<IControllerHandler>();
 
-            this.Init();
+            this.ServiceManager = new ServiceManager();
         }
 
-        private void Init()
-        {
-            var custom = new ControllerHandler();
-            custom.Register(new ControllerAction(Method.GET, "/test", (body) =>
-            {
-                Console.WriteLine("HAHAHA WORKS!");
-                return ResponseMessage.Error;
-            }));
-
-            custom.Register(new ControllerAction(Method.POST, "/testpost", (body) =>
-            {
-                Console.WriteLine("POST WORKING!");
-                Console.WriteLine(body);
-                return ResponseMessage.Error;
-            }));
-
-            this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
-            this.ControllerHandlers.Add(custom);
-        }
+        
 
         public void Listen()
         {
@@ -59,6 +47,7 @@ namespace ASPMajda.Server
             while (true)
             {
                 var client = new Client(listener.AcceptTcpClient());
+                this.ServiceManager.HandleLog("Received connection...", Level.Info);
 
                 var thread = new Thread(() =>
                 {
@@ -75,13 +64,12 @@ namespace ASPMajda.Server
             using (var sr = new StreamReader(client.Stream))
             using (var sw = new StreamWriter(client.Stream))
             {
-                var message = this.HandleRequest(sr);
-                if (message.HasBody)
-                    this.HandleBody(sr, ref message);
+                var request = this.HandleRequest(sr);
+                if (request.HasBody)
+                    this.HandleBody(sr, ref request);
 
                 ResponseMessage response = ResponseMessage.Error;
-                foreach (var handler in this.ControllerHandlers)
-                    if (handler.TryFire(message, out response)) break;
+                this.ServiceManager.HandleControllers(request, out response);
 
                 this.HandleResponse(sw, response);
                 client.Stream.Close();
@@ -92,22 +80,39 @@ namespace ASPMajda.Server
 
         private void HandleBody(StreamReader sr, ref RequestMessage message)
         {
-            int len = int.Parse(message.Headers["Content-Length"]);
-            char[] buffer = new char[len];
-            sr.Read(buffer, 0, len);
-            message.Body = new string(buffer);
+            int len;
+            string type;
+            if (!message.TryGetContentLength(out len)) return;
+            message.TryGetContentType(out type);
+
+            this.ServiceManager.HandleLog($"Found {type} body content", Level.Info);
+
+            if (type.StartsWith("text") || type == "application/json")
+            {
+                char[] buffer = new char[len];
+                sr.Read(buffer, 0, len);
+                message.Body = new StringContent(new String(buffer));
+                this.ServiceManager.HandleLog($"Extracted text content: {message.Body}", Level.Detailed);
+            }            
         }
 
         private void HandleResponse(StreamWriter sw, ResponseMessage response)
         {
             if (response == null) response = ResponseMessage.Error;
 
-            sw.WriteLine($"HTTP/1.0 ${response.StatusCode} OK");
-            foreach (var header in response.Headers)
+            response.Headers.SetHeader("Server", "ASPMajda/1.0 (CSharp)");
+            response.Headers.SetHeader("Date", DateTime.UtcNow.ToString());
+
+            this.ServiceManager.HandleLog($"Sending response... {response.StatusCode} with {response.Headers.Data.Count} headers", Level.Info);
+
+            sw.WriteLine($"HTTP/1.1 ${response.StatusCode} OK");
+            foreach (var header in response.Headers.Data)
                 sw.WriteLine($"{header.Key}: {header.Value}");
 
             if (response.Content != null)
             {
+                this.ServiceManager.HandleLog($"Sending content", Level.Detailed);
+
                 sw.WriteLine();
                 sw.Flush();
                 
@@ -120,20 +125,17 @@ namespace ASPMajda.Server
         private RequestMessage HandleRequest(StreamReader sr)
         {
             var message = new RequestMessage();
-            //using (var sr = new StreamReader(stream))
-            //{
+            
             var line = sr.ReadLine();
             message.ParsePath(line);
 
             while (line != "")
             {
                 message.ParseHeader(line);
-
-                //Console.WriteLine(line);
                 line = sr.ReadLine();
             }
-            //}
 
+            this.ServiceManager.HandleLog($"Request... method: {message.Method}, path: {message.Path}", Level.Detailed);
             return message;
         }
     }

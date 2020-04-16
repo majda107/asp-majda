@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ASPMajda.Server.Models
+namespace ASPMajda.Server.Packet
 {
     enum Method
     {
@@ -14,6 +14,7 @@ namespace ASPMajda.Server.Models
         CONNECT,
         OPTIONS,
         TRACE,
-        PATCH
+        PATCH,
+        INVALID
     }
 }

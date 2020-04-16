@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ASPMajda.Server.Content;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ASPMajda.Server.Models
+namespace ASPMajda.Server.Messages
 {
     class StringResponseMessage: ResponseMessage
     {
@@ -11,7 +12,7 @@ namespace ASPMajda.Server.Models
 
         public StringResponseMessage(int statusCode, string message) :base(statusCode)
         {
-            this.Headers.Add("Content-Type", "text/html; charset=utf-8");
+            this.Headers.SetHeader("Content-Type", "text/html; charset=utf-8");
             this.Content = new StringContent(message);
         }
     }

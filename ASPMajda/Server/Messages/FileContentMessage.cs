@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ASPMajda.Server.Content;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ASPMajda.Server.Models
+namespace ASPMajda.Server.Messages
 {
     class FileContentMessage: ResponseMessage
     {
@@ -12,8 +13,7 @@ namespace ASPMajda.Server.Models
             var fc = new FileContent(path);
             this.Content = fc;
 
-            if (!this.Headers.ContainsKey("Content-Type")) this.Headers.Add("Content-Type", "");
-            this.Headers["Content-Type"] = fc.MimeType;
+            this.Headers.SetHeader("Content-Type", fc.MimeType); 
         }
     }
 }

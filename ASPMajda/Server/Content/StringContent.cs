@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ASPMajda.Server.Models
+namespace ASPMajda.Server.Content
 {
     class StringContent : IContent
     {
