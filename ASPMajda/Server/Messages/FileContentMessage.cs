@@ -7,13 +7,13 @@ namespace ASPMajda.Server.Messages
 {
     class FileContentMessage: ResponseMessage
     {
-        public override IContent Content { get; set; }
+        public override IMemoryContent Content { get; set; }
         public FileContentMessage(int statusCode, string path):base(statusCode)
         {
             var fc = new FileContent(path);
             this.Content = fc;
 
-            this.Headers.SetHeader("Content-Type", fc.MimeType); 
+            this.Headers.SetHeader("Content-Type", fc.GetMime()); 
         }
     }
 }

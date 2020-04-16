@@ -6,23 +6,16 @@ using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    class FileContent: IContent
+    class FileContent: IMemoryContent
     {
 
-        public string MimeType { get; private set; }
         public string FilePath { get; private set; }
         public FileContent(string path)
-        {
-            var extension = Path.GetExtension(path);
-            if (IContent.MimeMappings.ContainsKey(extension))
-                this.MimeType = IContent.MimeMappings[extension];
-            else
-                this.MimeType = "text/plain";
-
+        {  
             this.FilePath = path;
         }
 
-        public Stream GetStream()
+        public MemoryStream GetStream()
         {
             var ms = new MemoryStream();
             using(var fs = new FileStream(this.FilePath, FileMode.Open, FileAccess.Read))
@@ -32,6 +25,15 @@ namespace ASPMajda.Server.Content
 
             ms.Position = 0;
             return ms;
+        }
+
+        public string GetMime()
+        {
+            var extension = Path.GetExtension(this.FilePath);
+            if (IMemoryContent.MimeMappings.ContainsKey(extension))
+                return IMemoryContent.MimeMappings[extension];
+            else
+                return "application/octet-stream";
         }
     }
 }

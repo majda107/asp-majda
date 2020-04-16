@@ -12,7 +12,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace ASPMajda.Server
+namespace ASPMajda.Server.Engine
 {
     class HttpServer
     {
@@ -32,7 +32,7 @@ namespace ASPMajda.Server
             this.Address = address;
             this.Port = port;
 
-            this.listener = new TcpListener(address, port);
+            this.listener = new TcpListener(address, port) ;
 
             this.Pool = new Pool();
 
@@ -72,8 +72,9 @@ namespace ASPMajda.Server
                 this.ServiceManager.HandleControllers(request, out response);
 
                 this.HandleResponse(sw, response);
-                client.Stream.Close();
             }
+
+            client.Stream.Close();
 
             this.Pool.Remove(client);
         }
@@ -82,18 +83,35 @@ namespace ASPMajda.Server
         {
             int len;
             string type;
-            if (!message.TryGetContentLength(out len)) return;
+            if (!message.TryGetContentLength(out len) || len == 0) return;
             message.TryGetContentType(out type);
 
             this.ServiceManager.HandleLog($"Found {type} body content", Level.Info);
 
+            char[] buffer = new char[len];
+            if (type.StartsWith("application/json") || type == "text/json")
+            {
+                sr.Read(buffer, 0, len);
+                message.Body = new JsonContent(new String(buffer));
+                this.ServiceManager.HandleLog($"Extracted json content: {message.Body}", Level.Detailed);
+
+                return;
+            }
+
             if (type.StartsWith("text") || type == "application/json")
             {
-                char[] buffer = new char[len];
                 sr.Read(buffer, 0, len);
                 message.Body = new StringContent(new String(buffer));
                 this.ServiceManager.HandleLog($"Extracted text content: {message.Body}", Level.Detailed);
-            }            
+
+                return;
+            }
+
+            message.Body = new MemoryContent() { MimeType = type };
+
+            byte[] data = new byte[len];
+            sr.BaseStream.Read(data, 0, len);
+            message.Body.GetStream().Write(data, 0, len);
         }
 
         private void HandleResponse(StreamWriter sw, ResponseMessage response)

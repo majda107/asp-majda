@@ -5,14 +5,14 @@ using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    class StringContent : IContent
+    class StringContent : IMemoryContent
     {
         public string Value { get; set; }
         public StringContent(string value)
         {
             this.Value = value;
         }
-        public Stream GetStream()
+        public MemoryStream GetStream()
         {
             var ms = new MemoryStream();
             var sw = new StreamWriter(ms);
@@ -20,6 +20,11 @@ namespace ASPMajda.Server.Content
             sw.Flush();
             ms.Position = 0;
             return ms;
+        }
+
+        public string GetMime()
+        {
+            return "text/plain";
         }
     }
 }

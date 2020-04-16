@@ -5,26 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ASPMajda.Server.Controller
+namespace ASPMajda.Server.Actions
 {
-    class ControllerAction
+    class ControllerAction: ControllerActionBase
     {
-        public delegate ResponseMessage ControllerActionDelegate(IContent body);
-
-        public string Path { get; private set; }
-        public Method Method { get; private set; }
+        public delegate ResponseMessage ControllerActionDelegate(IMemoryContent body);
         public ControllerActionDelegate Action { get; private set; }
 
 
-        public ControllerAction(Method method, string path, ControllerActionDelegate action)
+        public ControllerAction(Method method, string path, ControllerActionDelegate action):base(method, path)
         {
-            this.Method = method;
-            this.Path = path;
-
             this.Action = action;
         }
 
-        public ResponseMessage Fire(IContent body = null)
+        public override ResponseMessage Fire(IMemoryContent body = null)
         {
             if (this.Action == null) return null;
 

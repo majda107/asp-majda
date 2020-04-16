@@ -17,7 +17,7 @@ namespace ASPMajda.Server.Messages
         {
             get => Method == Method.POST || Method == Method.PUT || Method == Method.CONNECT || Method == Method.PATCH;
         }
-        public IContent Body { get; set; }
+        public IMemoryContent Body { get; set; }
 
         public RequestMessage()
         {

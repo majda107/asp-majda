@@ -12,7 +12,7 @@ namespace ASPMajda.Server.Messages
 
         public int StatusCode { get; set; }
         public Headers Headers { get; set; }
-        public virtual IContent Content { get => null; set { value = null; } }
+        public virtual IMemoryContent Content { get => null; set { value = null; } }
 
         public ResponseMessage(int statusCode)
         {

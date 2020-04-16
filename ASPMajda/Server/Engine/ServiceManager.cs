@@ -7,8 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ASPMajda.Server.Actions;
+using ASPMajda.App.Models;
+using ASPMajda.Models;
+using ASPMajda.Models.Result;
 
-namespace ASPMajda.Server
+namespace ASPMajda.Server.Engine
 {
     class ServiceManager
     {
@@ -37,14 +41,27 @@ namespace ASPMajda.Server
             custom.Register(new ControllerAction(Method.POST, "/testpost", (body) =>
             {
                 Console.WriteLine("POST WORKING!");
+                
+                if(body != null)
+                    Console.WriteLine($"Received body type: {body.GetMime()}");
+
                 if(body is StringContent)
                     Console.WriteLine((body as StringContent).Value);
 
                 return ResponseMessage.Error;
             }));
 
-            this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
+            custom.Register(new JsonControllerAction<ArticleViewModel>(Method.POST, "/postarticle", (article) =>
+            {
+                Console.WriteLine("Article seems to be received!");
+                Console.WriteLine($"Text: {article.Text}");
+
+                return ResponseMessage.Error;
+            }));
+
+            this.ControllerHandlers.Add(new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage")));
             this.ControllerHandlers.Add(custom);
+            this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
         }
 
         private void InitLogging()
@@ -67,7 +84,10 @@ namespace ASPMajda.Server
 
             foreach (var handler in this.ControllerHandlers)
                 if (handler.TryFire(request, out response))
+                {
                     this.HandleLog("Handler found!", Level.Info);
+                    return;
+                }
         }
     }
 }

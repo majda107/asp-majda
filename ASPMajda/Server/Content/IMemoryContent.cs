@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    interface IContent
+    interface IMemoryContent
     {
         public static IDictionary<string, string> MimeMappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
 
@@ -576,6 +576,8 @@ namespace ASPMajda.Server.Content
         #endregion
 
         };
-        public Stream GetStream();
+
+        public MemoryStream GetStream();
+        public string GetMime();
     }
 }

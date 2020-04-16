@@ -7,9 +7,9 @@ namespace ASPMajda.Server.Messages
 {
     class ContentResponseMessage: ResponseMessage
     {
-        public override IContent Content { get; set; }
+        public override IMemoryContent Content { get; set; }
 
-        public ContentResponseMessage(int statusCode, IContent content):base(statusCode)
+        public ContentResponseMessage(int statusCode, IMemoryContent content):base(statusCode)
         {
             this.Content = content;
         }
