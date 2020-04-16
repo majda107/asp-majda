@@ -13,11 +13,11 @@ namespace ASPMajda.Server.Controller
         {
             this.BasePath = basePath;
         }
-        public bool TryFire(Method method, string path, out ResponseMessage response)
+        public bool TryFire(RequestMessage request, out ResponseMessage response)
         {
             response = ResponseMessage.Error;
 
-            var filepath = this.BasePath + path;
+            var filepath = this.BasePath + request.Path;
             if (File.Exists(filepath))
             {
                 //response = new StringResponseMessage(200, File.ReadAllText(filepath));

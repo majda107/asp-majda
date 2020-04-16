@@ -36,9 +36,17 @@ namespace ASPMajda.Server
         private void Init()
         {
             var custom = new ControllerHandler();
-            custom.Register(new ControllerAction(Method.GET, "/test", () =>
+            custom.Register(new ControllerAction(Method.GET, "/test", (body) =>
             {
                 Console.WriteLine("HAHAHA WORKS!");
+                return ResponseMessage.Error;
+            }));
+
+            custom.Register(new ControllerAction(Method.POST, "/testpost", (body) =>
+            {
+                Console.WriteLine("POST WORKING!");
+                Console.WriteLine(body);
+                return ResponseMessage.Error;
             }));
 
             this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
@@ -68,16 +76,26 @@ namespace ASPMajda.Server
             using (var sw = new StreamWriter(client.Stream))
             {
                 var message = this.HandleRequest(sr);
+                if (message.HasBody)
+                    this.HandleBody(sr, ref message);
 
                 ResponseMessage response = ResponseMessage.Error;
                 foreach (var handler in this.ControllerHandlers)
-                    if (handler.TryFire(message.Method, message.Path, out response)) break;
+                    if (handler.TryFire(message, out response)) break;
 
                 this.HandleResponse(sw, response);
                 client.Stream.Close();
             }
 
             this.Pool.Remove(client);
+        }
+
+        private void HandleBody(StreamReader sr, ref RequestMessage message)
+        {
+            int len = int.Parse(message.Headers["Content-Length"]);
+            char[] buffer = new char[len];
+            sr.Read(buffer, 0, len);
+            message.Body = new string(buffer);
         }
 
         private void HandleResponse(StreamWriter sw, ResponseMessage response)

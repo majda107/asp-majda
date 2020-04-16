@@ -7,13 +7,14 @@ namespace ASPMajda.Server.Controller
 {
     class ControllerAction
     {
+        public delegate ResponseMessage ControllerActionDelegate(string body);
+
         public string Path { get; private set; }
         public Method Method { get; private set; }
-        public Action Action { get; private set; }
+        public ControllerActionDelegate Action { get; private set; }
 
-        public ResponseMessage Response { get; private set; }
 
-        public ControllerAction(Method method, string path, Action action)
+        public ControllerAction(Method method, string path, ControllerActionDelegate action)
         {
             this.Method = method;
             this.Path = path;
@@ -21,14 +22,12 @@ namespace ASPMajda.Server.Controller
             this.Action = action;
         }
 
-        public ResponseMessage Fire()
+        public ResponseMessage Fire(string body = null)
         {
             if (this.Action == null) return null;
 
             // wrap to return response message
-            this.Action();
-
-            return this.Response;
+            return this.Action(body);
         }
     }
 }

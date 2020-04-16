@@ -12,6 +12,12 @@ namespace ASPMajda.Server.Models
 
         public Dictionary<string, string> Headers { get; private set; }
 
+        public bool HasBody
+        {
+            get => Method == Method.POST || Method == Method.PUT || Method == Method.CONNECT || Method == Method.PATCH;
+        }
+        public string Body { get; set; }
+
         public RequestMessage()
         {
             this.Headers = new Dictionary<string, string>();
@@ -28,11 +34,8 @@ namespace ASPMajda.Server.Models
         }
         public void ParseHeader(string line)
         {
-            //var split = line.Split(' ');
-            //if(split.Length == 3)
-            //{
+            if (line == null) return;
 
-            //}
             var split = line.Split(": ");
             if (split.Length < 2) return;
 

@@ -21,16 +21,16 @@ namespace ASPMajda.Server.Controller
             this.Methods[action.Method].Add(action);
         }
 
-        public bool TryFire(Method method, string path, out ResponseMessage message)
+        public bool TryFire(RequestMessage request, out ResponseMessage message)
         {
             message = ResponseMessage.Error;
-            if (!this.Methods.ContainsKey(method)) return false;
+            if (!this.Methods.ContainsKey(request.Method)) return false;
 
-            foreach(var action in this.Methods[method])
+            foreach(var action in this.Methods[request.Method])
             {
-                if (action.Path != path) continue;
+                if (action.Path != request.Path) continue;
 
-                message = action.Fire();
+                message = action.Fire(request.Body);
                 return true;
             }
 

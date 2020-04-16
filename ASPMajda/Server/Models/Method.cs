@@ -7,6 +7,13 @@ namespace ASPMajda.Server.Models
     enum Method
     {
         GET,
-        POST
+        HEAD,
+        POST,
+        PUT,
+        DELETE,
+        CONNECT,
+        OPTIONS,
+        TRACE,
+        PATCH
     }
 }
