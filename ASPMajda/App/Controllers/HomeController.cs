@@ -1,4 +1,5 @@
-﻿using ASPMajda.App.Models;
+﻿using ASPMajda.App.Data;
+using ASPMajda.App.Models;
 using ASPMajda.Models;
 using ASPMajda.Models.Attributes;
 using ASPMajda.Models.Result;
@@ -11,6 +12,12 @@ namespace ASPMajda.App.Controllers
 {
     class HomeController: ControllerBase
     {
+        private MajdaService _majdaService;
+        public HomeController(MajdaService majdaService)
+        {
+            this._majdaService = majdaService;
+        }
+
         public IResult Google()
         {
             return new Redirect("http://www.google.com");

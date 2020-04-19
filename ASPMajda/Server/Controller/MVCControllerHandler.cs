@@ -20,13 +20,30 @@ namespace ASPMajda.Server.Controller
 
         private Dictionary<string, ControllerData> controllerMethods;
 
-        public MVCControllerHandler(Type iResultType, MethodInfo getResponse)
+        private Dictionary<Type, object> singletons;
+
+        public MVCControllerHandler(Type iResultType, MethodInfo getResponse, bool init = false)
         {
             this.controllerMethods = new Dictionary<string, ControllerData>();
+            this.singletons = new Dictionary<Type, object>();
+
             this.IResultType = iResultType;
             this.GetResponse = getResponse;
 
+            if(init)
+                this.Init();
+        }
+
+        public void Generate()
+        {
             this.Init();
+        }
+
+        public void AddSingleton<S>(S singleton)
+        {
+            if (this.singletons.ContainsKey(typeof(S))) return;
+
+            this.singletons.Add(typeof(S), singleton);
         }
 
         private IEnumerable<Type> GetChildren(Type type)
@@ -35,6 +52,41 @@ namespace ASPMajda.Server.Controller
             return assembly.GetTypes().Where(t => t.IsSubclassOf(type));
         }
 
+        private object[] GetSingletons(Type type)
+        {
+            int topIndex = 0;
+            int topScore = 0;
+
+            int score = 0;
+
+            var constructors = type.GetConstructors();
+            if (constructors.Length <= 0) return Array.Empty<object>();
+
+            for (int i = 0; i < constructors.Length; i++)
+            {
+                score = 0;
+                foreach (var parameter in constructors[i].GetParameters())
+                    if (this.singletons.ContainsKey(parameter.ParameterType))
+                        score += 1;
+
+                if(score > topScore)
+                {
+                    topScore = score;
+                    topIndex = i;
+                }    
+            }
+
+            var instances = new List<object>();
+            foreach(var parameter in constructors[topIndex].GetParameters())
+            {
+                if (singletons.ContainsKey(parameter.ParameterType))
+                    instances.Add(singletons[parameter.ParameterType]);
+                else
+                    instances.Add(null);
+            }
+
+            return instances.ToArray();
+        }
         private void Init()
         {
             var controllers = this.GetChildren(typeof(T));
@@ -49,7 +101,9 @@ namespace ASPMajda.Server.Controller
 
                     var name = controller.Name.ToLower();
                     if (!this.controllerMethods.ContainsKey(name))
-                        this.controllerMethods.Add(name, new ControllerData(controller));
+                    {
+                        this.controllerMethods.Add(name, new ControllerData(controller, GetSingletons(controller)));
+                    }
 
                     this.controllerMethods[name].Add(method);
                 }

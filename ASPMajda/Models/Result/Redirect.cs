@@ -16,6 +16,8 @@ namespace ASPMajda.Models.Result
         {
             var response = new ResponseMessage(301);
             response.Headers.SetHeader("Location", this.Url);
+            response.Headers.SetHeader("Content-Type", "text/html");
+
             return response;
         }
     }

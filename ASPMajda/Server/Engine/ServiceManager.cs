@@ -11,6 +11,7 @@ using ASPMajda.Server.Actions;
 using ASPMajda.App.Models;
 using ASPMajda.Models;
 using ASPMajda.Models.Result;
+using ASPMajda.App.Data;
 
 namespace ASPMajda.Server.Engine
 {
@@ -59,7 +60,11 @@ namespace ASPMajda.Server.Engine
                 return ResponseMessage.Error;
             }));
 
-            this.ControllerHandlers.Add(new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage")));
+            var mvc = new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage"));
+            mvc.AddSingleton<MajdaService>(new MajdaService("Majda luf <3"));
+            mvc.Generate();
+            this.ControllerHandlers.Add(mvc);
+
             this.ControllerHandlers.Add(custom);
             this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
         }

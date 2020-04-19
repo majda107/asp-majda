@@ -123,7 +123,7 @@ namespace ASPMajda.Server.Engine
 
             this.ServiceManager.HandleLog($"Sending response... {response.StatusCode} with {response.Headers.Data.Count} headers", Level.Info);
 
-            sw.WriteLine($"HTTP/1.1 ${response.StatusCode} OK");
+            sw.WriteLine($"HTTP/1.1 {response.StatusCode} {response.StatusMessage}");
             foreach (var header in response.Headers.Data)
                 sw.WriteLine($"{header.Key}: {header.Value}");
 

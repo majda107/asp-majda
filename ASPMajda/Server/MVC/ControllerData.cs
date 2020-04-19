@@ -10,10 +10,10 @@ namespace ASPMajda.Server.MVC
         public List<MethodInfo> Methods { get; set; }
         public object ControllerInstance { get; set; }
 
-        public ControllerData(Type type)
+        public ControllerData(Type type, params object[] args)
         {
             this.Methods = new List<MethodInfo>();
-            this.ControllerInstance = Activator.CreateInstance(type);
+            this.ControllerInstance = Activator.CreateInstance(type, args);
         }
 
         public void Add(MethodInfo method)
