@@ -136,6 +136,17 @@ namespace ASPMajda.Server.Controller
             // YOU COULD RETURN NULL IN CONTROLLER AND FAKE TRYFIRE!
             object result = null;
 
+            var parameters = action.GetParameters();
+            if(parameters.Length > 1 || parameters.Length == 0)
+            {
+                var objects = new List<object>();
+                foreach (var parameter in parameters)
+                    objects.Add(null);
+
+                result = (action.Invoke(data.ControllerInstance, objects.ToArray()));
+            }
+
+
             if (request.Body is JsonContent && action.GetCustomAttribute<FromJson>() != null)
             {
                 var param = (request.Body as JsonContent).GetObject(action.GetParameters().First().ParameterType);
@@ -145,11 +156,6 @@ namespace ASPMajda.Server.Controller
             if (request.Body is StringContent && action.GetParameters().First().ParameterType == typeof(string))
             {
                 result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as StringContent).Value }));
-            }
-
-            if (request.Body == null)
-            {
-                result = action.Invoke(data.ControllerInstance, new object[] { });
             }
 
 
