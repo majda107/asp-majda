@@ -6,6 +6,7 @@ using ASPMajda.Models.Result;
 using ASPMajda.Server.Packet;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 
 namespace ASPMajda.App.Controllers
@@ -13,9 +14,11 @@ namespace ASPMajda.App.Controllers
     class HomeController: ControllerBase
     {
         private MajdaService _majdaService;
-        public HomeController(MajdaService majdaService)
+        private HttpClient _httpClient;
+        public HomeController(MajdaService majdaService, HttpClient httpClient)
         {
             this._majdaService = majdaService;
+            this._httpClient = httpClient;
         }
 
         public IResult Google()

@@ -46,6 +46,12 @@ namespace ASPMajda.Server.Controller
             this.singletons.Add(typeof(S), singleton);
         }
 
+        public void AddHttpClient()
+        {
+            if (this.singletons.ContainsKey(typeof(System.Net.Http.HttpClient))) return;
+            this.singletons.Add(typeof(System.Net.Http.HttpClient), new System.Net.Http.HttpClient());
+        }
+
         private IEnumerable<Type> GetChildren(Type type)
         {
             var assembly = Assembly.GetAssembly(type);

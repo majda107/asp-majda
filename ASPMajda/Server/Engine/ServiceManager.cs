@@ -62,6 +62,7 @@ namespace ASPMajda.Server.Engine
 
             var mvc = new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage"));
             mvc.AddSingleton<MajdaService>(new MajdaService("Majda luf <3"));
+            mvc.AddHttpClient();
             mvc.Generate();
             this.ControllerHandlers.Add(mvc);
 
