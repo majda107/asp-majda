@@ -39,8 +39,9 @@ namespace ASPMajda.App.Controllers
         public IResult JsonTest(ArticleViewModel article)
         {
             Console.WriteLine($"Json from HomeCotroller: {article.Text}");
+            article.Text = "This totally works!";
 
-            return new Redirect("https://www.google.com");
+            return new JsonResult(article);
         }
     }
 }
