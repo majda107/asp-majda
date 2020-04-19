@@ -43,5 +43,11 @@ namespace ASPMajda.App.Controllers
 
             return new JsonResult(article);
         }
+
+        [FromMethod(Method.POST)]
+        public IResult JsonTest()
+        {
+            return new JsonResult(new ArticleViewModel() { Text = "New generated article!" });
+        }
     }
 }

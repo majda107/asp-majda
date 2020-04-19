@@ -33,8 +33,15 @@ namespace ASPMajda.Server.Content
         }
 
         public object GetObject(Type type)
-        {
-            return JsonConvert.DeserializeObject(this.Json, type);
+        {   
+            try
+            {
+                return JsonConvert.DeserializeObject(this.Json, type);
+            }
+            catch(Exception e)
+            {
+                return null;
+            }
         }
 
         public string GetMime()

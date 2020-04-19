@@ -116,6 +116,39 @@ namespace ASPMajda.Server.Controller
             }
         }
 
+        private MethodInfo GetBodyAction(string name, ControllerData data, IMemoryContent content, Method method)
+        {
+            var candidates = data.Methods.Where(m => m.Name.ToLower() == name.ToLower());
+            if (method != Method.GET)
+                candidates = candidates.Where(t => {
+                    var att = t.GetCustomAttribute<FromMethod>();
+                    if (att == null) return false;
+                    return att.Method == method;
+                });
+
+            MethodInfo noParam = null;
+            foreach(var candidate in candidates)
+            {
+                var parameters = candidate.GetParameters();
+                if (parameters.Length <= 0)
+                    noParam = candidate;
+
+                if (parameters.Length > 1) continue;
+
+                var attribute = candidate.GetCustomAttribute<FromJson>();
+                if (content is JsonContent && attribute != null)
+                    return candidate;
+
+                if (content is StringContent && parameters[0].ParameterType == typeof(string))
+                    return candidate;
+            }
+
+            if (noParam != null)
+                return noParam;
+
+            return null;
+        }
+
         public bool TryFire(RequestMessage request, out ResponseMessage response)
         {
             response = ResponseMessage.Error;
@@ -126,12 +159,12 @@ namespace ASPMajda.Server.Controller
             if (!this.controllerMethods.ContainsKey(pathSplit[1])) return false;
 
             var data = this.controllerMethods[pathSplit[1]];
-            var action = data.Methods.First(m => m.Name.ToLower() == pathSplit[2]);
+            //var action = data.Methods.First(m => m.Name.ToLower() == pathSplit[2]);
+            var action = this.GetBodyAction(pathSplit[2], data, request.Body, request.Method);
 
-            var methodAttr = action.GetCustomAttribute<FromMethod>();
-            var method = methodAttr == null ? Method.GET : methodAttr.Method;
+            if (action == null) return false;
 
-            if (action == null || method != request.Method) return false;
+
 
             // YOU COULD RETURN NULL IN CONTROLLER AND FAKE TRYFIRE!
             object result = null;
