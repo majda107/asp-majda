@@ -16,6 +16,9 @@
     <None Update="wwwroot\index.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="wwwroot\kyberna.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="wwwroot\love.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
