@@ -202,8 +202,38 @@ namespace ASPMajda.Server.Controller
             //    result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as FormContent) }));
 
 
-            if(request.Body == null)
+            if (request.Body == null)
             {
+                if (request.QueryParams.Count > 0)
+                {
+                    foreach (var queryAction in actions)
+                    {
+                        var args = queryAction.GetParameters();
+                        if (queryAction.GetCustomAttribute<FromQuery>() != null && args.Length > 0 && args.First().ParameterType == typeof(QueryParams))
+                        {
+                            var method = queryAction.GetCustomAttribute<FromMethod>();
+                            if (method != null && method.Method != request.Method) continue;
+
+                            result = queryAction.Invoke(data.ControllerInstance, new object[] { request.QueryParams });
+                            if (result != null)
+                            {
+                                response = (ResponseMessage)this.GetResponse.Invoke(result, new object[] { });
+                                return true;
+                            }
+
+                            return true;
+                        }
+                    }
+                }
+
+                actions = actions.Where(t =>
+                {
+                    var method = t.GetCustomAttribute<FromMethod>();
+                    if (method != null && method.Method != request.Method) return false;
+
+                    return true;
+                });
+
                 if (actions.Count() <= 0) return false;
                 var action = actions.OrderBy(t => t.GetParameters().Length).First();
 
@@ -219,6 +249,9 @@ namespace ASPMajda.Server.Controller
 
             foreach (var action in actions)
             {
+                var method = action.GetCustomAttribute<FromMethod>();
+                if (method != null && method.Method != request.Method) continue;
+
                 result = request.Body.GetMvcResult(action, data.ControllerInstance);
                 if (result != null)
                 {
@@ -226,7 +259,7 @@ namespace ASPMajda.Server.Controller
                     return true;
                 }
             }
-                
+
 
             //if (result != null)
             //    response = (ResponseMessage)this.GetResponse.Invoke(result, new object[] { });

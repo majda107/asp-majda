@@ -57,6 +57,15 @@ namespace ASPMajda.App.Controllers
             return new JsonResult(article);
         }
 
+        [FromMethod(Method.DELETE)]
+        [FromQuery]
+        public IResult DeleteTest(QueryParams queryParams)
+        {
+            Console.WriteLine($"[DELETE] Json from HomeCotroller: {queryParams.Count}");
+
+            return new Ok("DELETE WORKS");
+        }
+
         [FromMethod(Method.POST)]
         [FromJson]
         public IResult JsonTest(ArticleViewModel article)

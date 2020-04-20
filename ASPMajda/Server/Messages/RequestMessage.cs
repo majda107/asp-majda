@@ -11,6 +11,7 @@ namespace ASPMajda.Server.Messages
         public Method Method { get; private set; } = Method.INVALID;
         public string Path { get; private set; }
         public string Version { get; private set; }
+        public QueryParams QueryParams { get; private set; }
         public Headers Headers { get; private set; }
 
         public bool HasBody
@@ -22,6 +23,7 @@ namespace ASPMajda.Server.Messages
         public RequestMessage()
         {
             this.Headers = new Headers();
+            this.QueryParams = new QueryParams();
         }
 
         public void ParsePath(string line)
@@ -38,6 +40,13 @@ namespace ASPMajda.Server.Messages
             this.Method = method;
             this.Path = split[1];
             this.Version = split[2];
+
+            var queryIndex = this.Path.IndexOf('?');
+            if (queryIndex >= 0)
+            {
+                this.QueryParams.Parse(this.Path.Substring(queryIndex + 1, this.Path.Length - queryIndex - 1));
+                this.Path = this.Path.Substring(0, queryIndex);
+            }
         }
         public void ParseHeader(string line)
         {
