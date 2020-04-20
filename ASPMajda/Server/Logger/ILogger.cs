@@ -10,8 +10,10 @@ namespace ASPMajda.Server.Logger
 
         void Warn(string message);
         void Error(string message);
+        void Ok(string message);
 
         bool Warnings { get; set; }
         bool Errors { get; set; }
+
     }
 }

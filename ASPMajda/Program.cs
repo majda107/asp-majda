@@ -19,8 +19,6 @@ namespace ASPMajda
         {
             var server = new HttpServer(IPAddress.Any, 6969);
 
-            Console.WriteLine($"Starting server at port {server.Port}");
-
             var configuration = new Configuration();
 
             // configure default mvc
@@ -67,6 +65,7 @@ namespace ASPMajda
 
             server.Configure(configuration);
 
+            server.HookAdditinalPort(80);
             server.Listen();
         }
     }

@@ -47,5 +47,11 @@ namespace ASPMajda.Server.Logger
             this.PrintColor("[Error] ", ConsoleColor.DarkRed);
             Console.WriteLine(message);
         }
+
+        public void Ok(string message)
+        {
+            this.PrintColor("[Ok] ", ConsoleColor.Green);
+            Console.WriteLine(message);
+        }
     }
 }

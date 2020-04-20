@@ -81,11 +81,13 @@ namespace ASPMajda.Server.Engine
         public void HandleLog(string message, Level level)
         {
             foreach (var logger in this.Loggers)
-                logger.Log(message, level);
+                lock (this)
+                    logger.Log(message, level);
         }
 
-        public void HandleWarning(string message) { foreach (var logger in this.Loggers) logger.Warn(message); }
-        public void HandleError(string message) { foreach (var logger in this.Loggers) logger.Error(message); }
+        public void HandleWarning(string message) { foreach (var logger in this.Loggers) lock (this) { logger.Warn(message); } }
+        public void HandleError(string message) { foreach (var logger in this.Loggers) lock (this) { logger.Error(message); } }
+        public void HandleOk(string message) { foreach (var logger in this.Loggers) lock (this) { logger.Ok(message); } }
 
         public void HandleResponseError() => HandleError("Error while sending HTTP response...");
         public void HandleRequestError() => HandleError("Error while receiving HTTP request...");

@@ -19,6 +19,7 @@ namespace ASPMajda.Server.Engine
     class HttpServer
     {
         public Pool Pool { get; private set; }
+        public ListenerPool ListenerPool { get; private set; }
 
         public IPAddress Address { get; private set; }
         public int Port { get; private set; }
@@ -50,6 +51,7 @@ namespace ASPMajda.Server.Engine
             this.listener = new TcpListener(this.Address, this.Port);
 
             this.Pool = new Pool();
+            this.ListenerPool = new ListenerPool();
 
             this.ServiceManager = new ServiceManager();
         }
@@ -60,10 +62,30 @@ namespace ASPMajda.Server.Engine
         }
 
 
+        public void HookAdditinalPort(int port)
+        {
+            var listener = new TcpListener(this.Address, port);
+            var thread = new Thread(() =>
+            {
+                listener.Start();
+                this.LoopListen(listener);
+            });
 
+            this.ListenerPool.Add(thread, listener);
+        }
         public void Listen()
         {
+            foreach (var thread in this.ListenerPool.Listeners.Keys)
+                thread.Start();
+
             this.listener.Start();
+            this.LoopListen(this.listener);
+        }
+
+        private void LoopListen(TcpListener listener)
+        {
+            this.ServiceManager.HandleOk($"Server started listening on {listener.LocalEndpoint.ToString()}");
+
             while (true)
             {
                 var client = new Client(listener.AcceptTcpClient());
@@ -108,7 +130,8 @@ namespace ASPMajda.Server.Engine
                     this.ServiceManager.HandleWarning($"Invalid request from: {client.TcpClient.Client.RemoteEndPoint.ToString()}");
             }
 
-            client.Stream.Close();
+           client.Stream.Close();
+            this.ServiceManager.HandleOk("Connection successfully closed...");
 
             this.Pool.Remove(client);
         }
