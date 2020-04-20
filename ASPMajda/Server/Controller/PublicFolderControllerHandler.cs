@@ -39,7 +39,7 @@ namespace ASPMajda.Server.Controller
                 ul += "</ul>";
 
 
-                response = new StringResponseMessage(200, $"<html><head></head><body>{ul}</body></html>");
+                response = new StringResponseMessage(200, $"<html><head><title>Public folder</title></head><h1>ASP.Majda public folder</h1><body>{ul}</body></html>");
                 return true;
             }
             if (File.Exists(path))
