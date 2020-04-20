@@ -22,9 +22,16 @@ namespace ASPMajda
             Console.WriteLine($"Starting server at port {server.Port}");
 
             var configuration = new Configuration();
-            configuration.AddDefaultMvc();
-            configuration.ConfigureDefaultLogging();
 
+            // configure default mvc
+            configuration.AddDefaultMvc();
+            // configure logger
+            configuration.ConfigureDefaultLogging();
+            // configure blacklist
+            configuration.ConfigureBlacklist(new string[]{ "127.0.0.1:6969" });
+
+
+            // aditional endpoints
             var custom = new ControllerHandler();
             custom.Register(new ControllerAction(Method.GET, "/test", (body) =>
             {

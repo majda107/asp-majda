@@ -141,6 +141,9 @@ namespace ASPMajda.Server.Controller
 
                 if (content is StringContent && parameters[0].ParameterType == typeof(string))
                     return candidate;
+
+                if (content is FormContent && parameters[0].ParameterType == typeof(FormContent))
+                    return candidate;
             }
 
             if (noParam != null)
@@ -152,6 +155,7 @@ namespace ASPMajda.Server.Controller
         public bool TryFire(RequestMessage request, out ResponseMessage response)
         {
             response = ResponseMessage.Error;
+            if (request.Path == null) return false;
 
             string[] pathSplit = request.Path.Split('/');
             if (pathSplit.Length < 3) return false;
@@ -190,6 +194,9 @@ namespace ASPMajda.Server.Controller
             {
                 result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as StringContent).Value }));
             }
+
+            if(request.Body is FormContent && action.GetParameters().First().ParameterType == typeof(FormContent))
+                result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as FormContent) }));
 
 
 

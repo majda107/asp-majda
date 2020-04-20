@@ -27,6 +27,8 @@ namespace ASPMajda.Server.Controller
         public bool TryFire(RequestMessage request, out ResponseMessage message)
         {
             message = ResponseMessage.Error;
+            if (request.Path == null) return false;
+
             if (!this.Methods.ContainsKey(request.Path)) return false;
 
             foreach (var action in this.Methods[request.Path])

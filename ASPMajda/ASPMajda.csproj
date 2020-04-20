@@ -10,6 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="App\Views\Home.majdahtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="wwwroot\index.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

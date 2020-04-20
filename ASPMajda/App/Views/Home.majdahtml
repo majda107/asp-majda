@@ -1,0 +1,10 @@
+﻿@model ArticleViewModel
+
+<html>
+<head>
+</head>
+<body>
+	<h1>Test print of article model</h1>
+	<p>@Model.Text</p>
+</body>
+</html>

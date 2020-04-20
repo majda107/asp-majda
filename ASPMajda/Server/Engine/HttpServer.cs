@@ -59,7 +59,7 @@ namespace ASPMajda.Server.Engine
             configuration.ModifyServer(this);
         }
 
-        
+
 
         public void Listen()
         {
@@ -88,10 +88,24 @@ namespace ASPMajda.Server.Engine
                 if (request.HasBody)
                     this.HandleBody(sr, ref request);
 
-                ResponseMessage response = ResponseMessage.Error;
-                this.ServiceManager.HandleControllers(request, out response);
+                if (request.Path != null)
+                {
+                    if (this.ServiceManager.HandleProtectors(request))
+                    {
+                        ResponseMessage response = ResponseMessage.Error;
+                        this.ServiceManager.HandleControllers(request, out response);
 
-                this.HandleResponse(sw, response);
+                        this.HandleResponse(sw, response);
+                    }
+                    else
+                    {
+                        string host = String.Empty;
+                        request.Headers.TryGetValue("Host", out host);
+                        this.ServiceManager.HandleWarning($"{host} blocked by protection system...  {client.TcpClient.Client.RemoteEndPoint.ToString()}");
+                    }
+                }
+                else
+                    this.ServiceManager.HandleWarning($"Invalid request from: {client.TcpClient.Client.RemoteEndPoint.ToString()}");
             }
 
             client.Stream.Close();
@@ -105,28 +119,46 @@ namespace ASPMajda.Server.Engine
             string type;
             if (!message.TryGetContentLength(out len) || len == 0) return;
             message.TryGetContentType(out type);
+            if (type == "" || type == null) return;
 
             this.ServiceManager.HandleLog($"Found {type} body content", Level.Info);
 
             char[] buffer = new char[len];
-            if (type.StartsWith("application/json") || type == "text/json")
+            if(type.Contains("json") || type.Contains("text") || type.Contains("x-www-form-urlencoded"))
             {
                 sr.Read(buffer, 0, len);
-                message.Body = new JsonContent(new String(buffer));
-                this.ServiceManager.HandleLog($"Extracted json content: {message.Body}", Level.Detailed);
+                if (type.Contains("json"))
+                    message.Body = new JsonContent(new String(buffer));
+                else if (type.Contains("x-www-form-urlencoded"))
+                    message.Body = new FormContent(new String(buffer));
+                else
+                    message.Body = new StringContent(new String(buffer));
 
-                return;
-            }
-
-            if (type.StartsWith("text") || type == "application/json")
-            {
-                sr.Read(buffer, 0, len);
-                message.Body = new StringContent(new String(buffer));
                 this.ServiceManager.HandleLog($"Extracted text content: {message.Body}", Level.Detailed);
-
                 return;
             }
 
+            //if (type.StartsWith("application/json") || type == "text/json")
+            //{
+            //    sr.Read(buffer, 0, len);
+            //    message.Body = new JsonContent(new String(buffer));
+            //    this.ServiceManager.HandleLog($"Extracted json content: {message.Body}", Level.Detailed);
+
+            //    return;
+            //}
+
+            //if (type.StartsWith("text"))
+            //{
+            //    sr.Read(buffer, 0, len);
+            //    message.Body = new StringContent(new String(buffer));
+            //    this.ServiceManager.HandleLog($"Extracted text content: {message.Body}", Level.Detailed);
+
+            //    return;
+            //}
+
+
+
+            this.ServiceManager.HandleLog($"Extracted content of type: {type}", Level.Detailed);
             message.Body = new MemoryContent() { MimeType = type };
 
             byte[] data = new byte[len];
@@ -143,34 +175,58 @@ namespace ASPMajda.Server.Engine
 
             this.ServiceManager.HandleLog($"Sending response... {response.StatusCode} with {response.Headers.Data.Count} headers", Level.Info);
 
-            sw.WriteLine($"HTTP/1.1 {response.StatusCode} {response.StatusMessage}");
+
+            try { sw.WriteLine($"HTTP/1.1 {response.StatusCode} {response.StatusMessage}"); }
+            catch (Exception e) { this.ServiceManager.HandleResponseError(); return; }
+
             foreach (var header in response.Headers.Data)
-                sw.WriteLine($"{header.Key}: {header.Value}");
+                try { sw.WriteLine($"{header.Key}: {header.Value}"); }
+                catch (Exception e) { this.ServiceManager.HandleResponseError(); return; }
 
             if (response.Content != null)
             {
                 this.ServiceManager.HandleLog($"Sending content", Level.Detailed);
 
-                sw.WriteLine();
-                sw.Flush();
-                
-                var s = response.Content.GetStream();
-                s.CopyTo(sw.BaseStream);
-                s.Dispose();
+                try
+                {
+                    sw.WriteLine();
+                    sw.Flush();
+
+                    var s = response.Content.GetStream();
+                    s.CopyTo(sw.BaseStream);
+                    s.Dispose();
+                }
+                catch (Exception e) { this.ServiceManager.HandleResponseError(); return; }
             }
         }
 
+
+        // TRY-CATCH WRAPPED...
         private RequestMessage HandleRequest(StreamReader sr)
         {
             var message = new RequestMessage();
 
-            var line = sr.ReadLine();
+            var line = String.Empty;
+
+            try { line = sr.ReadLine(); }
+            catch (Exception e)
+            {
+                this.ServiceManager.HandleRequestError();
+                return message;
+            }
+
             message.ParsePath(line);
 
             while (line != "")
             {
                 message.ParseHeader(line);
-                line = sr.ReadLine();
+
+                try { line = sr.ReadLine(); }
+                catch (Exception e)
+                {
+                    this.ServiceManager.HandleRequestError();
+                    return message;
+                }
             }
 
             this.ServiceManager.HandleLog($"Request... method: {message.Method}, path: {message.Path}", Level.Detailed);

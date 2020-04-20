@@ -4,6 +4,7 @@ using ASPMajda.Models.Result;
 using ASPMajda.Server.Controller;
 using ASPMajda.Server.Engine;
 using ASPMajda.Server.Logger;
+using ASPMajda.Server.Protection;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -44,6 +45,18 @@ namespace ASPMajda.Server.Configuration
             this.mutations.Add((server) =>
             {
                 server.ServiceManager.ControllerHandlers.Add(controllerHandler);
+            });
+        }
+
+        public void ConfigureBlacklist(string[] blacklist)
+        {
+            this.mutations.Add((server) =>
+            {
+                var protector = new BlacklistProtector();
+                foreach (var host in blacklist)
+                    protector.Hosts.Add(host);
+
+                server.ServiceManager.Protectors.Add(protector);
             });
         }
         public void ModifyServer(HttpServer server)

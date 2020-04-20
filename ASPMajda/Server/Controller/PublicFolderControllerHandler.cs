@@ -18,6 +18,7 @@ namespace ASPMajda.Server.Controller
         public bool TryFire(RequestMessage request, out ResponseMessage response)
         {
             response = ResponseMessage.Error;
+
             if (!request.Path.StartsWith(this.EndpointPath)) return false;
 
             var path = this.DirectoryPath + request.Path;

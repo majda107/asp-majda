@@ -3,6 +3,7 @@ using ASPMajda.App.Models;
 using ASPMajda.Models;
 using ASPMajda.Models.Attributes;
 using ASPMajda.Models.Result;
+using ASPMajda.Server.Content;
 using ASPMajda.Server.Packet;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,27 @@ namespace ASPMajda.App.Controllers
     {
         private MajdaService _majdaService;
         private HttpClient _httpClient;
+
+        private Random _rand;
         public HomeController(MajdaService majdaService, HttpClient httpClient)
         {
             this._majdaService = majdaService;
             this._httpClient = httpClient;
+
+            this._rand = new Random();
         }
 
         public IResult Google()
         {
             return new Redirect("http://www.google.com");
+        }
+
+        public IResult TestView()
+        {
+            var model = new ArticleViewModel();
+            model.Text = $"Omegapog - your random number - {this._rand.Next(0, 100)}";
+
+            return new MajdaView<ArticleViewModel>("App/Views/Home.majdahtml", model);
         }
 
         [FromMethod(Method.POST)]
@@ -48,6 +61,14 @@ namespace ASPMajda.App.Controllers
         public IResult JsonTest()
         {
             return new JsonResult(new ArticleViewModel() { Text = "New generated article!" });
+        }
+
+        [FromMethod(Method.POST)]
+        [FromForm]
+        public IResult FormTest(FormContent content)
+        {
+            Console.WriteLine($"Received form content of number of parameters: {content.Form.Count}");
+            return new Redirect("http://www.google.com");
         }
     }
 }
