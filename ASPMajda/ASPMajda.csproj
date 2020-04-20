@@ -19,6 +19,9 @@
     <None Update="wwwroot\love.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="wwwroot\styles\style.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="_public\folder1\test.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
