@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    class FormContent : IMemoryContent
+    class FormContent : MemoryContentBase
     {
         private readonly string _content;
         public Dictionary<string, string> Form { get; private set; }
@@ -47,12 +48,12 @@ namespace ASPMajda.Server.Content
                 return "";
             }
         }
-        public string GetMime()
+        public override string GetMime()
         {
             return "x-www-form-urlencoded";
         }
 
-        public MemoryStream GetStream()
+        public override MemoryStream GetStream()
         {
             var content = String.Empty;
 
@@ -68,6 +69,13 @@ namespace ASPMajda.Server.Content
 
             ms.Position = 0;
             return ms;
+        }
+
+        public override object GetMvcResult(MethodInfo action, object controllerInstance)
+        {
+            if (!this.MvcMethodValid(action, typeof(FormContent))) return null;
+
+            return action.Invoke(controllerInstance, new object[] { this });
         }
     }
 }

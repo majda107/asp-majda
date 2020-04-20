@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    interface IMemoryContent
+    abstract class MemoryContentBase
     {
         public static IDictionary<string, string> MimeMappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
 
@@ -577,7 +579,18 @@ namespace ASPMajda.Server.Content
 
         };
 
-        public MemoryStream GetStream();
-        public string GetMime();
+        public abstract MemoryStream GetStream();
+        public abstract string GetMime();
+
+
+
+        public abstract object GetMvcResult(MethodInfo action, object controllerInstance);
+        protected bool MvcMethodValid(MethodInfo action, Type type, int argumentCount = 1)
+        {
+            var args = action.GetParameters();
+            if (args.Length != argumentCount || args.First().ParameterType != type) return false;
+
+            return true;
+        }
     }
 }

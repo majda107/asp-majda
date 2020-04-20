@@ -9,7 +9,7 @@ namespace ASPMajda.Server.Actions
 {
     class ControllerAction: ControllerActionBase
     {
-        public delegate ResponseMessage ControllerActionDelegate(IMemoryContent body);
+        public delegate ResponseMessage ControllerActionDelegate(MemoryContentBase body);
         public ControllerActionDelegate Action { get; private set; }
 
 
@@ -18,7 +18,7 @@ namespace ASPMajda.Server.Actions
             this.Action = action;
         }
 
-        public override ResponseMessage Fire(IMemoryContent body = null)
+        public override ResponseMessage Fire(MemoryContentBase body = null)
         {
             if (this.Action == null) return null;
 

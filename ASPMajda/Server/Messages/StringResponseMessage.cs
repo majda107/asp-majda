@@ -8,7 +8,7 @@ namespace ASPMajda.Server.Messages
 {
     class StringResponseMessage: ResponseMessage
     {
-        public override IMemoryContent Content { get; set; }
+        public override MemoryContentBase Content { get; set; }
 
         public StringResponseMessage(int statusCode, string message) :base(statusCode)
         {

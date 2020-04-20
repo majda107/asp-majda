@@ -17,6 +17,6 @@ namespace ASPMajda.Server.Actions
             this.Method = method;
             this.Path = path;
         }
-        public abstract ResponseMessage Fire(IMemoryContent content);
+        public abstract ResponseMessage Fire(MemoryContentBase content);
     }
 }

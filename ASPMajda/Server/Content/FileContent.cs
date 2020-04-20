@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    class FileContent: IMemoryContent
+    class FileContent: MemoryContentBase
     {
 
         public string FilePath { get; private set; }
@@ -15,7 +16,7 @@ namespace ASPMajda.Server.Content
             this.FilePath = path;
         }
 
-        public MemoryStream GetStream()
+        public override MemoryStream GetStream()
         {
             var ms = new MemoryStream();
             using(var fs = new FileStream(this.FilePath, FileMode.Open, FileAccess.Read))
@@ -27,13 +28,20 @@ namespace ASPMajda.Server.Content
             return ms;
         }
 
-        public string GetMime()
+        public override string GetMime()
         {
             var extension = Path.GetExtension(this.FilePath);
-            if (IMemoryContent.MimeMappings.ContainsKey(extension))
-                return IMemoryContent.MimeMappings[extension];
+            if (MemoryContentBase.MimeMappings.ContainsKey(extension))
+                return MemoryContentBase.MimeMappings[extension];
             else
                 return "application/octet-stream";
+        }
+
+        public override object GetMvcResult(MethodInfo action, object controllerInstance)
+        {
+            if (!this.MvcMethodValid(action, typeof(MemoryStream))) return null;
+
+            return action.Invoke(controllerInstance, new object[] { this.GetStream() });
         }
     }
 }

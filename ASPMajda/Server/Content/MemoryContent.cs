@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace ASPMajda.Server.Content
 {
-    class MemoryContent : IMemoryContent
+    class MemoryContent : MemoryContentBase
     {
         public MemoryStream Stream { get; set;}
         public string MimeType { get; set; }
@@ -16,14 +17,21 @@ namespace ASPMajda.Server.Content
             this.Stream = new MemoryStream();
         }
 
-        public MemoryStream GetStream()
+        public override MemoryStream GetStream()
         {
             return this.Stream;
         }
 
-        public string GetMime()
+        public override string GetMime()
         {
             return this.MimeType;
+        }
+
+        public override object GetMvcResult(MethodInfo action, object controllerInstance)
+        {
+            if (!this.MvcMethodValid(action, typeof(MemoryStream))) return null;
+
+            return action.Invoke(controllerInstance, new object[] { this.GetStream() });
         }
     }
 }

@@ -10,6 +10,7 @@ using ASPMajda.Server.Content;
 using ASPMajda.Models.Result;
 using ASPMajda.Models.Attributes;
 using ASPMajda.Server.Packet;
+using System.IO;
 
 namespace ASPMajda.Server.Controller
 {
@@ -30,7 +31,7 @@ namespace ASPMajda.Server.Controller
             this.IResultType = iResultType;
             this.GetResponse = getResponse;
 
-            if(init)
+            if (init)
                 this.Init();
         }
 
@@ -75,15 +76,15 @@ namespace ASPMajda.Server.Controller
                     if (this.singletons.ContainsKey(parameter.ParameterType))
                         score += 1;
 
-                if(score > topScore)
+                if (score > topScore)
                 {
                     topScore = score;
                     topIndex = i;
-                }    
+                }
             }
 
             var instances = new List<object>();
-            foreach(var parameter in constructors[topIndex].GetParameters())
+            foreach (var parameter in constructors[topIndex].GetParameters())
             {
                 if (singletons.ContainsKey(parameter.ParameterType))
                     instances.Add(singletons[parameter.ParameterType]);
@@ -116,18 +117,19 @@ namespace ASPMajda.Server.Controller
             }
         }
 
-        private MethodInfo GetBodyAction(string name, ControllerData data, IMemoryContent content, Method method)
+        private MethodInfo GetBodyAction(string name, ControllerData data, MemoryContentBase content, Method method)
         {
             var candidates = data.Methods.Where(m => m.Name.ToLower() == name.ToLower());
             if (method != Method.GET)
-                candidates = candidates.Where(t => {
+                candidates = candidates.Where(t =>
+                {
                     var att = t.GetCustomAttribute<FromMethod>();
                     if (att == null) return false;
                     return att.Method == method;
                 });
 
             MethodInfo noParam = null;
-            foreach(var candidate in candidates)
+            foreach (var candidate in candidates)
             {
                 var parameters = candidate.GetParameters();
                 if (parameters.Length <= 0)
@@ -163,47 +165,73 @@ namespace ASPMajda.Server.Controller
             if (!this.controllerMethods.ContainsKey(pathSplit[1])) return false;
 
             var data = this.controllerMethods[pathSplit[1]];
+            var actions = data.Methods.Where(m => m.Name.ToLower() == pathSplit[2]);
             //var action = data.Methods.First(m => m.Name.ToLower() == pathSplit[2]);
-            var action = this.GetBodyAction(pathSplit[2], data, request.Body, request.Method);
+            //var action = this.GetBodyAction(pathSplit[2], data, request.Body, request.Method);
 
-            if (action == null) return false;
+            //if (action == null) return false;
 
 
 
-            // YOU COULD RETURN NULL IN CONTROLLER AND FAKE TRYFIRE!
+            //// YOU COULD RETURN NULL IN CONTROLLER AND FAKE TRYFIRE!
             object result = null;
 
-            var parameters = action.GetParameters();
-            if(parameters.Length > 1 || parameters.Length == 0)
+            //var parameters = action.GetParameters();
+            //if (parameters.Length > 1 || parameters.Length == 0)
+            //{
+            //    var objects = new List<object>();
+            //    foreach (var parameter in parameters)
+            //        objects.Add(null);
+
+            //    result = (action.Invoke(data.ControllerInstance, objects.ToArray()));
+            //}
+
+
+            //if (request.Body is JsonContent && action.GetCustomAttribute<FromJson>() != null)
+            //{
+            //    var param = (request.Body as JsonContent).GetObject(action.GetParameters().First().ParameterType);
+            //    result = (action.Invoke(data.ControllerInstance, new object[] { param }));
+            //}
+
+            //if (request.Body is StringContent && action.GetParameters().First().ParameterType == typeof(string))
+            //{
+            //    result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as StringContent).Value }));
+            //}
+
+            //if (request.Body is FormContent && action.GetParameters().First().ParameterType == typeof(FormContent))
+            //    result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as FormContent) }));
+
+
+            if(request.Body == null)
             {
+                if (actions.Count() <= 0) return false;
+                var action = actions.OrderBy(t => t.GetParameters().Length).First();
+
                 var objects = new List<object>();
-                foreach (var parameter in parameters)
+                foreach (var parameter in action.GetParameters())
                     objects.Add(null);
 
                 result = (action.Invoke(data.ControllerInstance, objects.ToArray()));
-            }
 
-
-            if (request.Body is JsonContent && action.GetCustomAttribute<FromJson>() != null)
-            {
-                var param = (request.Body as JsonContent).GetObject(action.GetParameters().First().ParameterType);
-                result = (action.Invoke(data.ControllerInstance, new object[] { param }));
-            }
-
-            if (request.Body is StringContent && action.GetParameters().First().ParameterType == typeof(string))
-            {
-                result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as StringContent).Value }));
-            }
-
-            if(request.Body is FormContent && action.GetParameters().First().ParameterType == typeof(FormContent))
-                result = (action.Invoke(data.ControllerInstance, new object[] { (request.Body as FormContent) }));
-
-
-
-            if (result != null)
                 response = (ResponseMessage)this.GetResponse.Invoke(result, new object[] { });
+                return true;
+            }
 
-            return true;
+            foreach (var action in actions)
+            {
+                result = request.Body.GetMvcResult(action, data.ControllerInstance);
+                if (result != null)
+                {
+                    response = (ResponseMessage)this.GetResponse.Invoke(result, new object[] { });
+                    return true;
+                }
+            }
+                
+
+            //if (result != null)
+            //    response = (ResponseMessage)this.GetResponse.Invoke(result, new object[] { });
+
+            return false;
         }
     }
 }

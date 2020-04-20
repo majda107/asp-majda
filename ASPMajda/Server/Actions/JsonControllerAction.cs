@@ -17,7 +17,7 @@ namespace ASPMajda.Server.Actions
             this.Action = action;
         }
 
-        public override ResponseMessage Fire(IMemoryContent content)
+        public override ResponseMessage Fire(MemoryContentBase content)
         {
             if (!(content is JsonContent)) return ResponseMessage.Error;
 

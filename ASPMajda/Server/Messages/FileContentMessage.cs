@@ -7,7 +7,7 @@ namespace ASPMajda.Server.Messages
 {
     class FileContentMessage: ResponseMessage
     {
-        public override IMemoryContent Content { get; set; }
+        public override MemoryContentBase Content { get; set; }
         public FileContentMessage(int statusCode, string path):base(statusCode)
         {
             var fc = new FileContent(path);
