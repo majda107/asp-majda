@@ -47,12 +47,22 @@ namespace ASPMajda.App.Controllers
             return new Redirect("http://www.google.com");
         }
 
+        [FromMethod(Method.PUT)]
+        [FromJson]
+        public IResult PutTest(ArticleViewModel article)
+        {
+            Console.WriteLine($"[PUT] Json from HomeCotroller: {article.Text}");
+            article.Text = "Put totally works!";
+
+            return new JsonResult(article);
+        }
+
         [FromMethod(Method.POST)]
         [FromJson]
         public IResult JsonTest(ArticleViewModel article)
         {
-            Console.WriteLine($"Json from HomeCotroller: {article.Text}");
-            article.Text = "This totally works!";
+            Console.WriteLine($"[POST] Json from HomeCotroller: {article.Text}");
+            article.Text = "Post  totally works!";
 
             return new JsonResult(article);
         }
