@@ -59,6 +59,15 @@ namespace ASPMajda.Server.Configuration
                 server.ServiceManager.Protectors.Add(protector);
             });
         }
+
+        public void AddFirewall(FirewallProtector firewall)
+        {
+            this.mutations.Add((server) =>
+            {
+                server.ServiceManager.Protectors.Add(firewall);
+            });
+        }
+
         public void ModifyServer(HttpServer server)
         {
             foreach (var mutation in this.mutations)

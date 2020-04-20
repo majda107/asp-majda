@@ -29,7 +29,7 @@ namespace ASPMajda.Server.Logger
 
         public void Log(string message, Level level)
         {
-            if (this.Level > level) return;
+            if ((int)this.Level < (int)level) return;
 
             Console.WriteLine($"[{level.ToString()}] {message}");
         }

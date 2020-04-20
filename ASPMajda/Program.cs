@@ -7,6 +7,7 @@ using ASPMajda.Server.Controller;
 using ASPMajda.Server.Engine;
 using ASPMajda.Server.Messages;
 using ASPMajda.Server.Packet;
+using ASPMajda.Server.Protection;
 using System;
 using System.IO;
 using System.Net;
@@ -23,10 +24,17 @@ namespace ASPMajda
 
             // configure default mvc
             configuration.AddDefaultMvc();
+
             // configure logger
             configuration.ConfigureDefaultLogging();
+
             // configure blacklist
-            configuration.ConfigureBlacklist(new string[]{ "127.0.0.1:6969" });
+            configuration.ConfigureBlacklist(new string[]{ "127.0.0.1:6969" }); //  use localhost :)
+
+            // configure firewall
+            var firewall = new FirewallProtector();
+            firewall.AddRule((req) => { return !req.Headers.Data.ContainsKey("FirewallTest"); }); // should kick user if "FirewallTest" header is present
+            configuration.AddFirewall(firewall);
 
 
             // aditional endpoints
