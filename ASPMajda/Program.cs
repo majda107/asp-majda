@@ -55,6 +55,7 @@ namespace ASPMajda
 
 
             configuration.AddControllerHandler(custom);
+            configuration.AddControllerHandler(new PublicFolderControllerHandler("/_public", Path.Combine(Directory.GetCurrentDirectory())));
             configuration.AddControllerHandler(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
 
             server.Configure(configuration);
