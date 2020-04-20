@@ -26,8 +26,8 @@ namespace ASPMajda.Server.Engine
             this.Loggers = new List<ILogger>();
 
             // TEST
-            this.Init();
-            this.InitLogging();
+            //this.Init();
+            //this.InitLogging();
         }
 
         private void Init()
@@ -60,11 +60,11 @@ namespace ASPMajda.Server.Engine
                 return ResponseMessage.Error;
             }));
 
-            var mvc = new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage"));
-            mvc.AddSingleton<MajdaService>(new MajdaService("Majda luf <3"));
-            mvc.AddHttpClient();
-            mvc.Generate();
-            this.ControllerHandlers.Add(mvc);
+            //var mvc = new MVCControllerHandler<ControllerBase>(typeof(IResult), typeof(IResult).GetMethod("GetResponseMessage"));
+            //mvc.AddSingleton<MajdaService>(new MajdaService("Majda luf <3"));
+            //mvc.AddHttpClient();
+            //mvc.Generate();
+            //this.ControllerHandlers.Add(mvc);
 
             this.ControllerHandlers.Add(custom);
             this.ControllerHandlers.Add(new FileControllerHandler(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));

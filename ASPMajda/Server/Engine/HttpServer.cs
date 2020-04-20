@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Security.Cryptography.X509Certificates;
+using ASPMajda.Server.Configuration;
 
 namespace ASPMajda.Server.Engine
 {
@@ -32,11 +34,29 @@ namespace ASPMajda.Server.Engine
             this.Address = address;
             this.Port = port;
 
-            this.listener = new TcpListener(address, port) ;
+            this.InitBase();
+        }
+
+        public HttpServer(IServerConfiguration configuration)
+        {
+            this.Address = configuration.GetAddress();
+            this.Port = configuration.GetPort();
+
+            this.InitBase();
+        }
+
+        private void InitBase()
+        {
+            this.listener = new TcpListener(this.Address, this.Port);
 
             this.Pool = new Pool();
 
             this.ServiceManager = new ServiceManager();
+        }
+
+        public void Configure(IConfiguration configuration)
+        {
+            configuration.ModifyServer(this);
         }
 
         
@@ -143,7 +163,7 @@ namespace ASPMajda.Server.Engine
         private RequestMessage HandleRequest(StreamReader sr)
         {
             var message = new RequestMessage();
-            
+
             var line = sr.ReadLine();
             message.ParsePath(line);
 
