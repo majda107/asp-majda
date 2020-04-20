@@ -24,6 +24,9 @@ namespace ASPMajda.Server.Controller
             if (Directory.Exists(path))
             {
                 string ul = "<ul>";
+
+                if (request.Path.Contains("../")) return false;
+
                 foreach (var file in Directory.GetFiles(path))
                     ul += $"<li><a href=\"{request.Path + "/" + Path.GetFileName(file)}\">{Path.GetFileName(file)}</a></li>";
 
